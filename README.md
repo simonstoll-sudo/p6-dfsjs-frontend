@@ -22,7 +22,6 @@ This single-page application (SPA) displays Olympic participation statistics for
 - **Styling:** Tailwind CSS 3.4+
 - **Routing:** React Router v6
 - **Testing:** Jest + React Testing Library
-- **Production Server:** NGINX 1.27 (Docker)
 
 ## Prerequisites
 
@@ -30,7 +29,6 @@ Before you begin, ensure you have installed:
 
 - **Node.js** 22.x or higher ([Download](https://nodejs.org/))
 - **npm** 10.x or higher (included with Node.js)
-- **Docker** and **Docker Compose** (optional, for production deployment) ([Download](https://www.docker.com/products/docker-desktop/))
 
 ## Getting Started
 
@@ -79,23 +77,6 @@ npm run preview
 
 The preview will be available at `http://localhost:4173`
 
-#### Option 3: Docker (Production-like environment)
-
-Run the application in a production-ready NGINX container:
-
-```bash
-# Build and start the container
-docker compose up -d
-
-# View logs
-docker compose logs -f
-
-# Stop the container
-docker compose down
-```
-
-The application will be available at `http://localhost`
-
 ### Verify Installation
 
 Open your browser and navigate to the application URL. You should see:
@@ -134,9 +115,6 @@ p6-dfsjs-frontend/
 ├── tailwind.config.js              # Tailwind CSS configuration
 ├── postcss.config.js               # PostCSS configuration
 ├── jest.config.js                  # Jest testing configuration
-├── Dockerfile                      # Multi-stage Docker build
-├── docker-compose.yml              # Docker service definition
-├── nginx.conf                      # NGINX configuration for SPA routing
 └── README.md                       # This file
 ```
 
@@ -243,56 +221,6 @@ The application uses **React Router v6** for client-side routing:
 - `/` - Home page (Olympic data list)
 - `*` - Catch-all for 404 (NotFound page)
 
-**NGINX Configuration:**
-The `nginx.conf` file includes `try_files $uri $uri/ /index.html;` to ensure all routes serve the React app, enabling proper SPA routing behavior (refresh works on any route).
-
-## Docker
-
-### Multi-Stage Build
-
-The Dockerfile uses a **multi-stage build** for optimal production images:
-
-**Stage 1: Build** (Node.js 22-alpine)
-- Install dependencies
-- Build with Vite (generates `dist/` folder)
-- Optimizations: minification, tree-shaking, code splitting
-
-**Stage 2: Production** (NGINX 1.27-alpine)
-- Copy built files from stage 1
-- Serve with NGINX
-- Final image size: ~50MB (vs ~500MB single-stage)
-
-**Advantages:**
-- Lightweight production image (no `node_modules`)
-- Fast build and deployment
-- Reproducible builds
-- Separate build and runtime environments
-
-### Build Docker Image
-
-```bash
-docker build -t p6-dfsjs-frontend .
-```
-
-### Run with Docker Compose
-
-```bash
-# Start service
-docker compose up -d
-
-# View logs
-docker compose logs -f
-
-# Stop service
-docker compose down
-```
-
-**Key Docker features:**
-- Multi-stage build for optimal image size
-- NGINX with SPA routing support
-- Gzip compression enabled
-- Exposed on port 80
-
 ## Data Structure
 
 ### Olympic Model
@@ -388,11 +316,7 @@ For global state (if needed in future):
    - Code splitting (lazy loading)
    - Asset optimization
 
-2. **NGINX:**
-   - Gzip compression for text assets
-   - Cache headers for static files
-
-3. **React:**
+2. **React:**
    - Functional components (lighter than class components)
    - Efficient re-renders
    - Production build optimizations
@@ -423,11 +347,11 @@ export default defineConfig({
 });
 ```
 
-### 404 on Refresh (Production)
+### 404 on Refresh
 
 **Problem:** Refreshing browser on routes like `/about` returns 404
 
-**Solution:** Ensure NGINX has `try_files $uri $uri/ /index.html;` in `nginx.conf` (already configured).
+**Solution:** This is expected in development with Vite. For production deployment, you'll need to configure your server to serve `index.html` for all routes (SPA routing).
 
 ### Tailwind Classes Not Working
 
